@@ -37,9 +37,10 @@ export async function sendMessageToN8n(message: string, sessionId: string, optio
 				headers,
 				body: JSON.stringify(body),
 				signal: controller.signal,
+				mode: 'cors', // Explicitly request CORS
 			})
 			if (!res.ok) {
-				throw new Error(`n8n responded with ${res.status}`)
+				throw new Error(`n8n responded with ${res.status}: ${res.statusText}`)
 			}
 			// Try streaming first, fallback to JSON
 			const contentType = res.headers.get('content-type') || ''
@@ -63,6 +64,14 @@ export async function sendMessageToN8n(message: string, sessionId: string, optio
 			attempt += 1
 			if (attempt >= 3) break
 			await new Promise(r => setTimeout(r, Math.min(1500 * attempt ** 2, 4000)))
+		}
+	}
+	
+	// Enhanced error logging for debugging
+	if (lastError instanceof Error) {
+		console.error('n8n webhook error:', lastError.message)
+		if (lastError.message.includes('Failed to fetch') || lastError.message.includes('CORS')) {
+			throw new Error('CORS error: Your n8n instance needs to allow requests from https://milkai.netlify.app')
 		}
 	}
 	throw lastError instanceof Error ? lastError : new Error('Failed to call n8n webhook')
