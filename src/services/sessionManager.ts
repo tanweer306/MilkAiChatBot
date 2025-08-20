@@ -4,12 +4,13 @@ import type { ChatMessage } from '../types/chat.types'
 const SESSION_KEY = 'chat_session_id'
 
 export function getOrCreateSessionId(): string {
-	let sessionId = localStorage.getItem(SESSION_KEY)
-	if (!sessionId) {
-		sessionId = uuidv4()
-		localStorage.setItem(SESSION_KEY, sessionId)
+	const existingSessionId = localStorage.getItem(SESSION_KEY)
+	if (!existingSessionId) {
+		const newSessionId = uuidv4()
+		localStorage.setItem(SESSION_KEY, newSessionId)
+		return newSessionId
 	}
-	return sessionId
+	return existingSessionId
 }
 
 export function resetSession(): void {
